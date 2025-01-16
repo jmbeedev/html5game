@@ -1,9 +1,11 @@
 <?php
 $data = json_decode(file_get_contents('php://input'), true);
-if (isset($data['name']) && isset($data['score'])) {
+if (isset($data['name']) && isset($data['score']) && isset($data['correct']) && isset($data['wrong'])) {
     $scoreData = [
         'name' => $data['name'],
-        'score' => $data['score']
+        'score' => $data['score'],
+        'correct' => $data['correct'],
+        'wrong' => $data['wrong']
     ];
     $jsonData = file_get_contents('scores.json');
     $scores = json_decode($jsonData, true);
