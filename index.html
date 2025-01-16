@@ -3,83 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Word Puzzle Game</title>
+    <title>Complex Word Puzzle Game</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #f9f9f9;
+            color: #333;
         }
         h1 {
             margin-top: 20px;
+            color: #4CAF50;
         }
         #game-container {
             display: inline-block;
             margin-top: 20px;
-        }
-        .word-box {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
+            padding: 20px;
+            border: 2px solid #ccc;
+            background-color: #fff;
+            border-radius: 8px;
         }
         .letter {
-            width: 50px;
-            height: 50px;
-            margin: 5px;
+            width: 60px;
+            height: 60px;
+            margin: 10px;
             font-size: 24px;
             font-weight: bold;
             text-align: center;
-            line-height: 50px;
+            line-height: 60px;
             border: 2px solid #000;
             background-color: #fff;
             cursor: pointer;
-            transition: transform 0.2s ease, background-color 0.3s ease;
+            transition: transform 0.2s, background-color 0.3s, box-shadow 0.3s;
+            border-radius: 4px;
         }
-        .letter.selected {
-            background-color: #ffeb3b;
+        .letter:hover {
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
         }
-        .letter:active {
-            transform: scale(1.1);
+        .letter.correct {
+            background-color: #90ee90;
+            border-color: #4CAF50;
         }
-        #score, #level, #timer {
+        .letter.incorrect {
+            background-color: #f08080;
+            border-color: #e53935;
+        }
+        #score, #level, #timer, #clue {
             font-size: 18px;
             margin: 10px 0;
         }
-        #reset, #submit {
-            margin-top: 20px;
+        #submit, #reset {
+            margin: 10px;
             padding: 10px 20px;
             font-size: 16px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
             cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #submit:hover, #reset:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <h1>Enhanced Word Puzzle Game</h1>
+    <h1>Complex Word Puzzle Game</h1>
     <div id="level">Level: 1</div>
     <div id="score">Score: 0</div>
     <div id="timer">Time Left: 30s</div>
+    <div id="clue">Clue: </div>
     <div id="game-container"></div>
     <button id="submit">Submit</button>
     <button id="reset">Reset</button>
 
     <script>
-        const words = [
-            { word: "CAT", level: 1 },
-            { word: "DOG", level: 1 },
-            { word: "BIRD", level: 2 },
-            { word: "FISH", level: 2 },
-            { word: "ELEPHANT", level: 3 },
-            { word: "CROCODILE", level: 3 },
-            { word: "PYTHON", level: 4 },
-            { word: "JAVASCRIPT", level: 4 },
-            { word: "DEVELOPER", level: 5 },
-            { word: "PROGRAMMING", level: 5 }
-        ];
-
+        let words = [];
         let currentWord = "";
         let shuffledWord = "";
+        let currentClue = "";
         let level = 1;
         let score = 0;
         let timer;
@@ -89,8 +94,15 @@
         const scoreDisplay = document.getElementById("score");
         const levelDisplay = document.getElementById("level");
         const timerDisplay = document.getElementById("timer");
+        const clueDisplay = document.getElementById("clue");
         const resetButton = document.getElementById("reset");
         const submitButton = document.getElementById("submit");
+
+        async function loadWords() {
+            const response = await fetch("words.json");
+            words = await response.json();
+            setupGame();
+        }
 
         function shuffleWord(word) {
             return word
@@ -107,8 +119,8 @@
                 timerDisplay.textContent = `Time Left: ${timeLeft}s`;
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    alert("Time's up! Try again.");
-                    resetGame();
+                    alert("Time's up! Moving to the next question.");
+                    moveToNextQuestion(false);
                 }
             }, 1000);
         }
@@ -119,7 +131,9 @@
             const randomWord =
                 availableWords[Math.floor(Math.random() * availableWords.length)];
             currentWord = randomWord.word;
+            currentClue = randomWord.clue;
             shuffledWord = shuffleWord(currentWord);
+            clueDisplay.textContent = `Clue: ${currentClue}`;
 
             shuffledWord.split("").forEach((letter) => {
                 const letterDiv = document.createElement("div");
@@ -163,13 +177,18 @@
             if (currentSolution === currentWord) {
                 alert("Correct! Moving to the next level.");
                 score += 10;
-                level = level < 5 ? level + 1 : 1;
-                scoreDisplay.textContent = `Score: ${score}`;
-                levelDisplay.textContent = `Level: ${level}`;
-                setupGame();
+                moveToNextQuestion(true);
             } else {
-                alert("Incorrect! Try again.");
+                alert("Incorrect! Moving to the next question.");
+                moveToNextQuestion(false);
             }
+        }
+
+        function moveToNextQuestion(isCorrect) {
+            level = level < 5 ? level + 1 : 1;
+            scoreDisplay.textContent = `Score: ${score}`;
+            levelDisplay.textContent = `Level: ${level}`;
+            setupGame();
         }
 
         function resetGame() {
@@ -184,21 +203,7 @@
         submitButton.addEventListener("click", checkSolution);
         resetButton.addEventListener("click", resetGame);
 
-        setupGame();
+        loadWords();
     </script>
-
-    <!-- Placeholder for Google AdSense -->
-    <div style="margin-top: 30px;">
-        <p>Advertisement</p>
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-XXXXXXXXXXXXXXX"
-             data-ad-slot="1234567890"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-    </div>
 </body>
 </html>
