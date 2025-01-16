@@ -6,10 +6,10 @@
     <title>Susun Huruf Menjadi Kata</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f9f9f9;
+            background-color: #f4f4f4;
             color: #333;
         }
         header {
@@ -117,6 +117,7 @@
                 <h3>Leaderboard</h3>
                 <div id="leaderboard"></div>
             </div>
+            <button id="download-score" style="display: none;">Unduh Skor (scores.json)</button>
         </aside>
         <section>
             <div id="game-container" style="display:none;">
@@ -151,6 +152,7 @@
         let remainingWords = 5;
         let correctAnswers = 0;
         let wrongAnswers = 0;
+        let leaderboardData = [];
 
         async function loadWords() {
             const response = await fetch('words.json');
@@ -158,7 +160,6 @@
         }
 
         function loadLeaderboard() {
-            const leaderboardData = JSON.parse(localStorage.getItem('leaderboard')) || [];
             const leaderboard = document.getElementById('leaderboard');
             leaderboard.innerHTML = leaderboardData
                 .map(entry => `<p>${entry.name}: Skor: ${entry.score}, Benar: ${entry.correct}, Salah: ${entry.wrong}</p>`)
@@ -166,17 +167,28 @@
         }
 
         function saveScore() {
-            const leaderboardData = JSON.parse(localStorage.getItem('leaderboard')) || [];
             leaderboardData.push({
                 name: playerName,
                 score: score,
                 correct: correctAnswers,
                 wrong: wrongAnswers
             });
-            localStorage.setItem('leaderboard', JSON.stringify(leaderboardData));
             alert('Skor berhasil disimpan!');
             loadLeaderboard();
             document.getElementById('save-score').style.display = 'none';
+            document.getElementById('download-score').style.display = 'block';
+        }
+
+        function downloadScores() {
+            const dataStr = JSON.stringify(leaderboardData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'scores.json';
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         function startGame() {
@@ -252,6 +264,7 @@
         document.getElementById('start-game').addEventListener('click', startGame);
         document.getElementById('submit-answer').addEventListener('click', checkAnswer);
         document.getElementById('save-score').addEventListener('click', saveScore);
+        document.getElementById('download-score').addEventListener('click', downloadScores);
 
         loadWords();
         loadLeaderboard();
