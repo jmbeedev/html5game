@@ -6,16 +6,16 @@
     <title>Susun Huruf Menjadi Kata</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #f9f9f9;
             color: #333;
         }
         header {
             background-color: #4CAF50;
             color: white;
-            padding: 20px 0;
+            padding: 20px;
             text-align: center;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
         }
@@ -157,34 +157,26 @@
             words = await response.json();
         }
 
-        async function loadLeaderboard() {
-            const response = await fetch('http://localhost:3000/scores');
-            const leaderboardData = await response.json();
+        function loadLeaderboard() {
+            const leaderboardData = JSON.parse(localStorage.getItem('leaderboard')) || [];
             const leaderboard = document.getElementById('leaderboard');
             leaderboard.innerHTML = leaderboardData
                 .map(entry => `<p>${entry.name}: Skor: ${entry.score}, Benar: ${entry.correct}, Salah: ${entry.wrong}</p>`)
                 .join('');
         }
 
-        async function saveScore() {
-            const newScore = {
+        function saveScore() {
+            const leaderboardData = JSON.parse(localStorage.getItem('leaderboard')) || [];
+            leaderboardData.push({
                 name: playerName,
                 score: score,
                 correct: correctAnswers,
                 wrong: wrongAnswers
-            };
-            const response = await fetch('http://localhost:3000/scores', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newScore)
             });
-            if (response.ok) {
-                alert('Skor berhasil disimpan!');
-                await loadLeaderboard();
-                document.getElementById('save-score').style.display = 'none';
-            } else {
-                alert('Gagal menyimpan skor!');
-            }
+            localStorage.setItem('leaderboard', JSON.stringify(leaderboardData));
+            alert('Skor berhasil disimpan!');
+            loadLeaderboard();
+            document.getElementById('save-score').style.display = 'none';
         }
 
         function startGame() {
