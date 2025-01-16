@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple HTML5 Game</title>
+    <title>HTML5 Puzzle Game</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,83 +12,136 @@
             padding: 0;
             background-color: #f4f4f4;
         }
-        canvas {
-            display: block;
-            margin: 20px auto;
-            border: 2px solid #000;
-            background-color: #e0e0e0;
+        h1 {
+            margin-top: 20px;
         }
-        #score {
-            font-size: 20px;
-            margin: 20px 0;
+        #game-container {
+            display: inline-block;
+            margin-top: 20px;
+        }
+        canvas {
+            border: 2px solid #000;
+            background-color: #fff;
+        }
+        #reset {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>Simple HTML5 Game</h1>
-    <p>Catch the moving ball and increase your score!</p>
-    <div id="score">Score: 0</div>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <h1>HTML5 Puzzle Game</h1>
+    <p>Rearrange the pieces to form the correct image!</p>
+    <div id="game-container">
+        <canvas id="puzzleCanvas" width="400" height="400"></canvas>
+    </div>
+    <button id="reset">Reset Puzzle</button>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
+        const canvas = document.getElementById('puzzleCanvas');
         const ctx = canvas.getContext('2d');
-        const scoreDisplay = document.getElementById('score');
+        const resetButton = document.getElementById('reset');
 
-        let score = 0;
-        let ball = { x: 200, y: 200, radius: 15, dx: 2, dy: 2 };
+        const image = new Image();
+        image.src = 'https://via.placeholder.com/400'; // Replace with your image asset URL
 
-        function drawBall() {
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-            ctx.fillStyle = 'red';
-            ctx.fill();
-            ctx.strokeStyle = 'black';
-            ctx.stroke();
-            ctx.closePath();
-        }
+        const rows = 4;
+        const cols = 4;
+        const tileWidth = canvas.width / cols;
+        const tileHeight = canvas.height / rows;
+        let tiles = [];
 
-        function updateBallPosition() {
-            ball.x += ball.dx;
-            ball.y += ball.dy;
-
-            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
-                ball.dx = -ball.dx;
-            }
-
-            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
-                ball.dy = -ball.dy;
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
         }
 
-        function checkCollision(event) {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = event.clientX - rect.left;
-            const mouseY = event.clientY - rect.top;
-
-            const distance = Math.sqrt(
-                (mouseX - ball.x) ** 2 + (mouseY - ball.y) ** 2
-            );
-
-            if (distance < ball.radius) {
-                score++;
-                scoreDisplay.textContent = `Score: ${score}`;
-
-                ball.x = Math.random() * (canvas.width - 2 * ball.radius) + ball.radius;
-                ball.y = Math.random() * (canvas.height - 2 * ball.radius) + ball.radius;
+        function initTiles() {
+            tiles = [];
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    tiles.push({
+                        x: col * tileWidth,
+                        y: row * tileHeight,
+                        correctX: col * tileWidth,
+                        correctY: row * tileHeight,
+                    });
+                }
             }
+            shuffle(tiles);
         }
 
-        canvas.addEventListener('click', checkCollision);
-
-        function gameLoop() {
+        function drawPuzzle() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawBall();
-            updateBallPosition();
-            requestAnimationFrame(gameLoop);
+            tiles.forEach((tile, index) => {
+                const sx = tile.correctX;
+                const sy = tile.correctY;
+                const dx = tile.x;
+                const dy = tile.y;
+
+                ctx.drawImage(
+                    image,
+                    sx, sy, tileWidth, tileHeight,
+                    dx, dy, tileWidth, tileHeight
+                );
+                ctx.strokeRect(dx, dy, tileWidth, tileHeight);
+            });
         }
 
-        gameLoop();
+        function swapTiles(index1, index2) {
+            [tiles[index1], tiles[index2]] = [tiles[index2], tiles[index1]];
+        }
+
+        function getTileIndex(x, y) {
+            return tiles.findIndex(
+                tile => x >= tile.x && x < tile.x + tileWidth && y >= tile.y && y < tile.y + tileHeight
+            );
+        }
+
+        function isSolved() {
+            return tiles.every(tile => tile.x === tile.correctX && tile.y === tile.correctY);
+        }
+
+        canvas.addEventListener('click', event => {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            const clickedIndex = getTileIndex(x, y);
+            if (clickedIndex !== -1) {
+                const emptyIndex = tiles.findIndex(
+                    tile => tile.x === (cols - 1) * tileWidth && tile.y === (rows - 1) * tileHeight
+                );
+
+                if (
+                    Math.abs(tiles[clickedIndex].x - tiles[emptyIndex].x) === tileWidth &&
+                    tiles[clickedIndex].y === tiles[emptyIndex].y ||
+                    Math.abs(tiles[clickedIndex].y - tiles[emptyIndex].y) === tileHeight &&
+                    tiles[clickedIndex].x === tiles[emptyIndex].x
+                ) {
+                    swapTiles(clickedIndex, emptyIndex);
+                    drawPuzzle();
+
+                    if (isSolved()) {
+                        alert('Congratulations! You solved the puzzle!');
+                    }
+                }
+            }
+        });
+
+        resetButton.addEventListener('click', () => {
+            initTiles();
+            drawPuzzle();
+        });
+
+        image.onload = () => {
+            initTiles();
+            drawPuzzle();
+        };
     </script>
 
     <!-- Placeholder for Google AdSense -->
