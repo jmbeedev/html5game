@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML5 Puzzle Game</title>
+    <title>Dot Puzzle Game</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -32,8 +32,8 @@
     </style>
 </head>
 <body>
-    <h1>HTML5 Puzzle Game</h1>
-    <p>Rearrange the pieces to form the correct image!</p>
+    <h1>Dot Puzzle Game</h1>
+    <p>Arrange the dots to their correct positions!</p>
     <div id="game-container">
         <canvas id="puzzleCanvas" width="400" height="400"></canvas>
     </div>
@@ -43,9 +43,6 @@
         const canvas = document.getElementById('puzzleCanvas');
         const ctx = canvas.getContext('2d');
         const resetButton = document.getElementById('reset');
-
-        const image = new Image();
-        image.src = 'https://raw.githubusercontent.com/jmbeedev/html5game/refs/heads/main/gambar.webp'; // Replace with your image asset URL
 
         const rows = 4;
         const cols = 4;
@@ -77,18 +74,20 @@
 
         function drawPuzzle() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            tiles.forEach((tile, index) => {
-                const sx = tile.correctX;
-                const sy = tile.correctY;
-                const dx = tile.x;
-                const dy = tile.y;
-
-                ctx.drawImage(
-                    image,
-                    sx, sy, tileWidth, tileHeight,
-                    dx, dy, tileWidth, tileHeight
+            tiles.forEach((tile) => {
+                ctx.beginPath();
+                ctx.arc(
+                    tile.x + tileWidth / 2,
+                    tile.y + tileHeight / 2,
+                    Math.min(tileWidth, tileHeight) / 4,
+                    0,
+                    Math.PI * 2
                 );
-                ctx.strokeRect(dx, dy, tileWidth, tileHeight);
+                ctx.fillStyle = "blue";
+                ctx.fill();
+                ctx.strokeStyle = "black";
+                ctx.stroke();
+                ctx.closePath();
             });
         }
 
@@ -98,15 +97,21 @@
 
         function getTileIndex(x, y) {
             return tiles.findIndex(
-                tile => x >= tile.x && x < tile.x + tileWidth && y >= tile.y && y < tile.y + tileHeight
+                (tile) =>
+                    x >= tile.x &&
+                    x < tile.x + tileWidth &&
+                    y >= tile.y &&
+                    y < tile.y + tileHeight
             );
         }
 
         function isSolved() {
-            return tiles.every(tile => tile.x === tile.correctX && tile.y === tile.correctY);
+            return tiles.every(
+                (tile) => tile.x === tile.correctX && tile.y === tile.correctY
+            );
         }
 
-        canvas.addEventListener('click', event => {
+        canvas.addEventListener("click", (event) => {
             const rect = canvas.getBoundingClientRect();
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;
@@ -114,34 +119,36 @@
             const clickedIndex = getTileIndex(x, y);
             if (clickedIndex !== -1) {
                 const emptyIndex = tiles.findIndex(
-                    tile => tile.x === (cols - 1) * tileWidth && tile.y === (rows - 1) * tileHeight
+                    (tile) =>
+                        tile.x === (cols - 1) * tileWidth &&
+                        tile.y === (rows - 1) * tileHeight
                 );
 
                 if (
-                    Math.abs(tiles[clickedIndex].x - tiles[emptyIndex].x) === tileWidth &&
+                    Math.abs(tiles[clickedIndex].x - tiles[emptyIndex].x) ===
+                        tileWidth &&
                     tiles[clickedIndex].y === tiles[emptyIndex].y ||
-                    Math.abs(tiles[clickedIndex].y - tiles[emptyIndex].y) === tileHeight &&
+                    Math.abs(tiles[clickedIndex].y - tiles[emptyIndex].y) ===
+                        tileHeight &&
                     tiles[clickedIndex].x === tiles[emptyIndex].x
                 ) {
                     swapTiles(clickedIndex, emptyIndex);
                     drawPuzzle();
 
                     if (isSolved()) {
-                        alert('Congratulations! You solved the puzzle!');
+                        alert("Congratulations! You solved the puzzle!");
                     }
                 }
             }
         });
 
-        resetButton.addEventListener('click', () => {
+        resetButton.addEventListener("click", () => {
             initTiles();
             drawPuzzle();
         });
 
-        image.onload = () => {
-            initTiles();
-            drawPuzzle();
-        };
+        initTiles();
+        drawPuzzle();
     </script>
 
     <!-- Placeholder for Google AdSense -->
