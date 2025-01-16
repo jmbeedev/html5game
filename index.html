@@ -107,6 +107,10 @@
                 <h3>Skor Anda</h3>
                 <p id="player-score">Skor: 0</p>
             </div>
+            <div class="widget">
+                <h3>Leaderboard</h3>
+                <div id="leaderboard"></div>
+            </div>
         </aside>
         <section id="game-container" style="display:none;">
             <div id="clue">Clue: </div>
@@ -135,10 +139,20 @@
         let timer;
         let timeLeft = 30;
         let playerName = '';
+        let usedWords = new Set();
 
         async function loadWords() {
             const response = await fetch('words.json');
             words = await response.json();
+        }
+
+        async function loadLeaderboard() {
+            const response = await fetch('scores.json');
+            const scores = await response.json();
+            const leaderboard = document.getElementById('leaderboard');
+            leaderboard.innerHTML = scores
+                .map((entry) => `<p>${entry.name}: ${entry.score}</p>`)
+                .join('');
         }
 
         function saveScore() {
@@ -146,9 +160,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: playerName, score: score })
-            }).then(response => response.text())
-              .then(data => console.log(data))
-              .catch(error => console.error('Error saving score:', error));
+            }).then(() => loadLeaderboard());
         }
 
         function startGame() {
@@ -169,13 +181,26 @@
         }
 
         function setupGame() {
+            if (usedWords.size === words.length) {
+                alert('Game Selesai! Semua kata telah digunakan.');
+                saveScore();
+                return;
+            }
+
             const gameContainer = document.getElementById('letters');
             const clueDisplay = document.getElementById('clue');
             gameContainer.innerHTML = '';
-            const randomWord = words[Math.floor(Math.random() * words.length)];
+
+            let randomWord;
+            do {
+                randomWord = words[Math.floor(Math.random() * words.length)];
+            } while (usedWords.has(randomWord.word));
+
             currentWord = randomWord.word;
             currentClue = randomWord.clue;
             shuffledWord = shuffleWord(currentWord);
+            usedWords.add(currentWord);
+
             clueDisplay.textContent = `Clue: ${currentClue}`;
             selectedLetters = [];
 
@@ -210,7 +235,6 @@
                 alert('Incorrect!');
             }
             scoreDisplay.textContent = `Skor: ${score}`;
-            saveScore();
             setupGame();
         }
 
@@ -224,7 +248,6 @@
                 if (timeLeft <= 0) {
                     clearInterval(timer);
                     alert('Time is up!');
-                    saveScore();
                     setupGame();
                 }
             }, 1000);
@@ -234,6 +257,7 @@
         document.getElementById('submit-answer').addEventListener('click', checkAnswer);
 
         loadWords();
+        loadLeaderboard();
     </script>
 </body>
 </html>
