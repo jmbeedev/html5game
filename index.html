@@ -32,50 +32,40 @@
             margin: 20px auto;
             max-width: 800px;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             gap: 20px;
         }
-        aside {
-            flex: 1;
+        .game-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+            gap: 5px;
+            justify-content: center;
+        }
+        .letter-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .widget h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-        .widget p {
-            margin: 5px 0;
-        }
-        section {
-            flex: 2;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        .letter {
-            display: inline-block;
-            margin: 10px;
-            padding: 20px;
-            font-size: 24px;
-            font-weight: bold;
-            background: #fff;
-            border: 2px solid #ccc;
+            border: 1px solid #ccc;
             border-radius: 5px;
+            width: 50px;
+            height: 50px;
+            font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
             transition: background-color 0.3s, transform 0.2s;
         }
-        .letter.selected {
+        .letter-cell.selected {
             background-color: #4CAF50;
             color: white;
             border-color: #45a049;
         }
-        .letter:hover {
+        .letter-cell:hover {
             transform: scale(1.1);
+        }
+        .controls {
+            text-align: center;
+            margin-top: 20px;
         }
         button {
             padding: 10px 20px;
@@ -93,8 +83,10 @@
         #clue, #level, #remaining, #score {
             margin: 10px 0;
             font-size: 18px;
+            text-align: center;
         }
         #name-input {
+            text-align: center;
             margin-top: 20px;
         }
     </style>
@@ -104,29 +96,17 @@
         <h1>Susun Huruf Menjadi Kata</h1>
     </header>
     <main>
-        <aside>
-            <div class="widget">
-                <h3>Pemain</h3>
-                <p id="player-name">Nama: -</p>
-            </div>
-            <div class="widget">
-                <h3>Skor Anda</h3>
-                <p id="player-score">Skor: 0</p>
-            </div>
-            <div class="widget">
-                <h3>Leaderboard</h3>
-                <div id="leaderboard"></div>
-            </div>
-        </aside>
         <section>
             <div id="game-container" style="display:none;">
                 <div id="clue">Clue: </div>
-                <div id="letters"></div>
+                <div id="letters" class="game-area"></div>
                 <div id="level">Level: 1</div>
                 <div id="remaining">Remaining Words: 5</div>
                 <div id="score">Score: 0</div>
-                <button id="submit-answer">Submit</button>
-                <button id="save-score" style="display:none;">Save Score</button>
+                <div class="controls">
+                    <button id="submit-answer">Submit</button>
+                    <button id="save-score" style="display:none;">Save Score</button>
+                </div>
             </div>
             <div id="name-input">
                 <h2>Masukkan Nama Anda</h2>
@@ -157,35 +137,12 @@
             words = await response.json();
         }
 
-        function loadLeaderboard() {
-            const leaderboardData = JSON.parse(localStorage.getItem('leaderboard')) || [];
-            const leaderboard = document.getElementById('leaderboard');
-            leaderboard.innerHTML = leaderboardData
-                .map(entry => `<p>${entry.name}: Skor: ${entry.score}, Benar: ${entry.correct}, Salah: ${entry.wrong}</p>`)
-                .join('');
-        }
-
-        function saveScore() {
-            const leaderboardData = JSON.parse(localStorage.getItem('leaderboard')) || [];
-            leaderboardData.push({
-                name: playerName,
-                score: score,
-                correct: correctAnswers,
-                wrong: wrongAnswers
-            });
-            localStorage.setItem('leaderboard', JSON.stringify(leaderboardData));
-            alert('Skor berhasil disimpan!');
-            loadLeaderboard();
-            document.getElementById('save-score').style.display = 'none';
-        }
-
         function startGame() {
             playerName = document.getElementById('player-input').value.trim();
             if (!playerName) {
                 alert('Nama tidak boleh kosong!');
                 return;
             }
-            document.getElementById('player-name').textContent = `Nama: ${playerName}`;
             document.getElementById('name-input').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
             setupGame();
@@ -196,7 +153,6 @@
                 alert(`Level ${level} selesai!`);
                 level++;
                 remainingWords = level * 5;
-                document.getElementById('level').textContent = `Level: ${level}`;
             }
             const randomWord = words[Math.floor(Math.random() * words.length)];
             currentWord = randomWord.word;
@@ -210,7 +166,7 @@
 
             shuffledWord.split('').forEach(letter => {
                 const letterElement = document.createElement('div');
-                letterElement.className = 'letter';
+                letterElement.className = 'letter-cell';
                 letterElement.textContent = letter;
                 letterElement.addEventListener('click', () => selectLetter(letterElement));
                 document.getElementById('letters').appendChild(letterElement);
@@ -242,7 +198,6 @@
                 wrongAnswers++;
             }
             remainingWords--;
-            document.getElementById('score').textContent = `Score: ${score}`;
             if (remainingWords === 0) {
                 document.getElementById('save-score').style.display = 'block';
             }
@@ -251,10 +206,8 @@
 
         document.getElementById('start-game').addEventListener('click', startGame);
         document.getElementById('submit-answer').addEventListener('click', checkAnswer);
-        document.getElementById('save-score').addEventListener('click', saveScore);
 
         loadWords();
-        loadLeaderboard();
     </script>
 </body>
 </html>
