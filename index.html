@@ -111,6 +111,7 @@
                 <h3>Leaderboard</h3>
                 <div id="leaderboard"></div>
             </div>
+            <button id="save-score" style="display:none;">Save Score</button>
         </aside>
         <section id="game-container" style="display:none;">
             <div id="clue">Clue: </div>
@@ -140,8 +141,6 @@
         let timer;
         let timeLeft = 30;
         let playerName = '';
-        let level = 1;
-        let remainingWords = 5;
         let correctAnswers = 0;
         let wrongAnswers = 0;
 
@@ -155,7 +154,7 @@
             const scores = await response.json();
             const leaderboard = document.getElementById('leaderboard');
             leaderboard.innerHTML = scores
-                .map((entry) => `<p>${entry.name}: Skor: ${entry.score}, Benar: ${entry.correct}, Salah: ${entry.wrong}</p>`)
+                .map(entry => `<p>${entry.name}: Skor: ${entry.score}, Benar: ${entry.correct}, Salah: ${entry.wrong}</p>`)
                 .join('');
         }
 
@@ -169,7 +168,14 @@
                     correct: correctAnswers,
                     wrong: wrongAnswers
                 })
-            }).then(() => loadLeaderboard());
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert('Score berhasil disimpan!');
+                document.getElementById('save-score').style.display = 'none';
+                loadLeaderboard();
+            })
+            .catch(error => console.error('Error:', error));
         }
 
         function startGame() {
@@ -185,21 +191,9 @@
             setupGame();
         }
 
-        function shuffleWord(word) {
-            return word.split('').sort(() => Math.random() - 0.5).join('');
-        }
-
         function setupGame() {
-            if (remainingWords === 0) {
-                alert(`Level ${level} selesai!`);
-                level++;
-                remainingWords = level * 5;
-                document.getElementById('level').textContent = `Level: ${level}`;
-            }
-
             const gameContainer = document.getElementById('letters');
             const clueDisplay = document.getElementById('clue');
-            const remainingDisplay = document.getElementById('remaining');
             gameContainer.innerHTML = '';
             const randomWord = words[Math.floor(Math.random() * words.length)];
             currentWord = randomWord.word;
@@ -207,7 +201,6 @@
             shuffledWord = shuffleWord(currentWord);
 
             clueDisplay.textContent = `Clue: ${currentClue}`;
-            remainingDisplay.textContent = `Remaining Words: ${remainingWords}`;
             selectedLetters = [];
 
             shuffledWord.split('').forEach(letter => {
@@ -219,6 +212,10 @@
             });
 
             startTimer();
+        }
+
+        function shuffleWord(word) {
+            return word.split('').sort(() => Math.random() - 0.5).join('');
         }
 
         function selectLetter(letterElement) {
@@ -242,8 +239,8 @@
                 alert('Incorrect!');
                 wrongAnswers++;
             }
-            remainingWords--;
             scoreDisplay.textContent = `Skor: ${score}`;
+            document.getElementById('save-score').style.display = 'block';
             setupGame();
         }
 
@@ -256,9 +253,9 @@
                 timerDisplay.textContent = `Time Left: ${timeLeft}s`;
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    wrongAnswers++;
                     alert('Time is up!');
-                    remainingWords--;
+                    wrongAnswers++;
+                    document.getElementById('save-score').style.display = 'block';
                     setupGame();
                 }
             }, 1000);
@@ -266,6 +263,7 @@
 
         document.getElementById('start-game').addEventListener('click', startGame);
         document.getElementById('submit-answer').addEventListener('click', checkAnswer);
+        document.getElementById('save-score').addEventListener('click', saveScore);
 
         loadWords();
         loadLeaderboard();
