@@ -35,7 +35,10 @@
             border: 2px solid #000;
             background-color: #fff;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, background-color 0.3s ease;
+        }
+        .letter.selected {
+            background-color: #ffeb3b;
         }
         .letter:active {
             transform: scale(1.1);
@@ -44,7 +47,7 @@
             font-size: 18px;
             margin: 10px 0;
         }
-        #reset {
+        #reset, #submit {
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 16px;
@@ -58,6 +61,7 @@
     <div id="score">Score: 0</div>
     <div id="timer">Time Left: 30s</div>
     <div id="game-container"></div>
+    <button id="submit">Submit</button>
     <button id="reset">Reset</button>
 
     <script>
@@ -67,7 +71,11 @@
             { word: "BIRD", level: 2 },
             { word: "FISH", level: 2 },
             { word: "ELEPHANT", level: 3 },
-            { word: "CROCODILE", level: 3 }
+            { word: "CROCODILE", level: 3 },
+            { word: "PYTHON", level: 4 },
+            { word: "JAVASCRIPT", level: 4 },
+            { word: "DEVELOPER", level: 5 },
+            { word: "PROGRAMMING", level: 5 }
         ];
 
         let currentWord = "";
@@ -82,6 +90,7 @@
         const levelDisplay = document.getElementById("level");
         const timerDisplay = document.getElementById("timer");
         const resetButton = document.getElementById("reset");
+        const submitButton = document.getElementById("submit");
 
         function shuffleWord(word) {
             return word
@@ -142,8 +151,6 @@
             const tempContent = draggedElement.textContent;
             draggedElement.textContent = targetElement.textContent;
             targetElement.textContent = tempContent;
-
-            checkSolution();
         }
 
         function checkSolution() {
@@ -156,10 +163,12 @@
             if (currentSolution === currentWord) {
                 alert("Correct! Moving to the next level.");
                 score += 10;
-                level = level < 3 ? level + 1 : 1;
+                level = level < 5 ? level + 1 : 1;
                 scoreDisplay.textContent = `Score: ${score}`;
                 levelDisplay.textContent = `Level: ${level}`;
                 setupGame();
+            } else {
+                alert("Incorrect! Try again.");
             }
         }
 
@@ -172,6 +181,7 @@
             setupGame();
         }
 
+        submitButton.addEventListener("click", checkSolution);
         resetButton.addEventListener("click", resetGame);
 
         setupGame();
