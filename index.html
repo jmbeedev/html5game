@@ -10,23 +10,28 @@
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
-            color: #333;\n            text-align: center;
+            text-align: center;
+            color: #333;
         }
         h1 {
             color: #4CAF50;
+            margin-top: 20px;
         }
         #main-menu, #difficulty-selection, #gameplay {
             display: none;
         }
+        #main-menu.active, #difficulty-selection.active, #gameplay.active {
+            display: block;
+        }
         button {
             padding: 10px 20px;
             margin: 10px;
-            border: none;
             background-color: #4CAF50;
             color: white;
-            font-size: 16px;
-            cursor: pointer;
+            border: none;
             border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
         }
         button:hover {
             background-color: #45a049;
@@ -47,8 +52,8 @@
             font-weight: bold;
             background: #fff;
             border: 2px solid #ccc;
-            cursor: pointer;
             border-radius: 5px;
+            cursor: pointer;
             transition: background 0.3s;
         }
         .letter:hover {
@@ -63,14 +68,10 @@
 <body>
     <h1>Susun Huruf Menjadi Kata</h1>
 
-    <!-- Main Menu -->
-    <div id="main-menu">
+    <div id="main-menu" class="active">
         <button id="start-game">Mulai Permainan</button>
-        <button id="how-to-play">Panduan</button>
-        <button id="settings">Pengaturan</button>
     </div>
 
-    <!-- Difficulty Selection -->
     <div id="difficulty-selection">
         <h2>Pilih Tingkat Kesulitan</h2>
         <button data-difficulty="easy">Mudah</button>
@@ -78,13 +79,11 @@
         <button data-difficulty="hard">Sulit</button>
     </div>
 
-    <!-- Gameplay -->
     <div id="gameplay">
         <div id="clue">Clue: </div>
         <div id="game-container"></div>
         <div id="score">Score: 0</div>
         <div id="timer">Time Left: 30s</div>
-        <button id="hint">Hint</button>
         <button id="submit-answer">Submit</button>
     </div>
 
@@ -92,13 +91,11 @@
         const mainMenu = document.getElementById('main-menu');
         const difficultySelection = document.getElementById('difficulty-selection');
         const gameplay = document.getElementById('gameplay');
-        const startGameButton = document.getElementById('start-game');
-        const clueDisplay = document.getElementById('clue');
         const gameContainer = document.getElementById('game-container');
+        const clueDisplay = document.getElementById('clue');
         const scoreDisplay = document.getElementById('score');
         const timerDisplay = document.getElementById('timer');
         const submitButton = document.getElementById('submit-answer');
-        const hintButton = document.getElementById('hint');
         let words = [];
         let currentWord = '';
         let shuffledWord = '';
@@ -114,14 +111,14 @@
         }
 
         function startGame() {
-            mainMenu.style.display = 'none';
-            difficultySelection.style.display = 'block';
+            mainMenu.classList.remove('active');
+            difficultySelection.classList.add('active');
         }
 
         function selectDifficulty(event) {
             difficulty = event.target.dataset.difficulty;
-            difficultySelection.style.display = 'none';
-            gameplay.style.display = 'block';
+            difficultySelection.classList.remove('active');
+            gameplay.classList.add('active');
             setupGame();
         }
 
@@ -161,10 +158,24 @@
             }, 1000);
         }
 
-        startGameButton.addEventListener('click', startGame);
+        function checkAnswer() {
+            const userAnswer = Array.from(gameContainer.children).map(letter => letter.textContent).join('');
+            if (userAnswer === currentWord) {
+                alert('Correct!');
+                score += 10;
+                setupGame();
+            } else {
+                alert('Incorrect!');
+                setupGame();
+            }
+            scoreDisplay.textContent = `Score: ${score}`;
+        }
+
+        document.getElementById('start-game').addEventListener('click', startGame);
         document.querySelectorAll('[data-difficulty]').forEach(button => {
             button.addEventListener('click', selectDifficulty);
         });
+        submitButton.addEventListener('click', checkAnswer);
 
         loadWords();
     </script>
