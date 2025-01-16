@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dot Puzzle Game</title>
+    <title>Word Puzzle Game</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,9 +19,30 @@
             display: inline-block;
             margin-top: 20px;
         }
-        canvas {
+        .word-box {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .letter {
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 50px;
             border: 2px solid #000;
             background-color: #fff;
+            cursor: pointer;
+        }
+        #score {
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        #level {
+            font-size: 18px;
+            margin: 20px 0;
         }
         #reset {
             margin-top: 20px;
@@ -32,123 +53,105 @@
     </style>
 </head>
 <body>
-    <h1>Dot Puzzle Game</h1>
-    <p>Arrange the dots to their correct positions!</p>
-    <div id="game-container">
-        <canvas id="puzzleCanvas" width="400" height="400"></canvas>
-    </div>
-    <button id="reset">Reset Puzzle</button>
+    <h1>Word Puzzle Game</h1>
+    <div id="level">Level: 1</div>
+    <div id="score">Score: 0</div>
+    <div id="game-container"></div>
+    <button id="reset">Reset</button>
 
     <script>
-        const canvas = document.getElementById('puzzleCanvas');
-        const ctx = canvas.getContext('2d');
-        const resetButton = document.getElementById('reset');
+        const words = [
+            { word: "CAT", level: 1 },
+            { word: "DOG", level: 1 },
+            { word: "BIRD", level: 2 },
+            { word: "FISH", level: 2 },
+            { word: "ELEPHANT", level: 3 },
+            { word: "CROCODILE", level: 3 }
+        ];
 
-        const rows = 4;
-        const cols = 4;
-        const tileWidth = canvas.width / cols;
-        const tileHeight = canvas.height / rows;
-        let tiles = [];
+        let currentWord = "";
+        let shuffledWord = "";
+        let level = 1;
+        let score = 0;
 
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
+        const gameContainer = document.getElementById("game-container");
+        const scoreDisplay = document.getElementById("score");
+        const levelDisplay = document.getElementById("level");
+        const resetButton = document.getElementById("reset");
+
+        function shuffleWord(word) {
+            return word
+                .split("")
+                .sort(() => Math.random() - 0.5)
+                .join("");
         }
 
-        function initTiles() {
-            tiles = [];
-            for (let row = 0; row < rows; row++) {
-                for (let col = 0; col < cols; col++) {
-                    tiles.push({
-                        x: col * tileWidth,
-                        y: row * tileHeight,
-                        correctX: col * tileWidth,
-                        correctY: row * tileHeight,
-                    });
-                }
-            }
-            shuffle(tiles);
-        }
+        function setupGame() {
+            gameContainer.innerHTML = "";
+            const availableWords = words.filter((w) => w.level === level);
+            const randomWord =
+                availableWords[Math.floor(Math.random() * availableWords.length)];
+            currentWord = randomWord.word;
+            shuffledWord = shuffleWord(currentWord);
 
-        function drawPuzzle() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            tiles.forEach((tile) => {
-                ctx.beginPath();
-                ctx.arc(
-                    tile.x + tileWidth / 2,
-                    tile.y + tileHeight / 2,
-                    Math.min(tileWidth, tileHeight) / 4,
-                    0,
-                    Math.PI * 2
-                );
-                ctx.fillStyle = "blue";
-                ctx.fill();
-                ctx.strokeStyle = "black";
-                ctx.stroke();
-                ctx.closePath();
+            shuffledWord.split("").forEach((letter) => {
+                const letterDiv = document.createElement("div");
+                letterDiv.classList.add("letter");
+                letterDiv.textContent = letter;
+                letterDiv.draggable = true;
+                letterDiv.addEventListener("dragstart", handleDragStart);
+                letterDiv.addEventListener("dragover", handleDragOver);
+                letterDiv.addEventListener("drop", handleDrop);
+                gameContainer.appendChild(letterDiv);
             });
         }
 
-        function swapTiles(index1, index2) {
-            [tiles[index1], tiles[index2]] = [tiles[index2], tiles[index1]];
+        let draggedElement;
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
         }
 
-        function getTileIndex(x, y) {
-            return tiles.findIndex(
-                (tile) =>
-                    x >= tile.x &&
-                    x < tile.x + tileWidth &&
-                    y >= tile.y &&
-                    y < tile.y + tileHeight
-            );
+        function handleDragOver(e) {
+            e.preventDefault();
         }
 
-        function isSolved() {
-            return tiles.every(
-                (tile) => tile.x === tile.correctX && tile.y === tile.correctY
-            );
+        function handleDrop(e) {
+            e.preventDefault();
+            const targetElement = e.target;
+            const tempContent = draggedElement.textContent;
+            draggedElement.textContent = targetElement.textContent;
+            targetElement.textContent = tempContent;
+
+            checkSolution();
         }
 
-        canvas.addEventListener("click", (event) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
+        function checkSolution() {
+            const currentSolution = Array.from(
+                gameContainer.children
+            )
+                .map((letterDiv) => letterDiv.textContent)
+                .join("");
 
-            const clickedIndex = getTileIndex(x, y);
-            if (clickedIndex !== -1) {
-                const emptyIndex = tiles.findIndex(
-                    (tile) =>
-                        tile.x === (cols - 1) * tileWidth &&
-                        tile.y === (rows - 1) * tileHeight
-                );
-
-                if (
-                    Math.abs(tiles[clickedIndex].x - tiles[emptyIndex].x) ===
-                        tileWidth &&
-                    tiles[clickedIndex].y === tiles[emptyIndex].y ||
-                    Math.abs(tiles[clickedIndex].y - tiles[emptyIndex].y) ===
-                        tileHeight &&
-                    tiles[clickedIndex].x === tiles[emptyIndex].x
-                ) {
-                    swapTiles(clickedIndex, emptyIndex);
-                    drawPuzzle();
-
-                    if (isSolved()) {
-                        alert("Congratulations! You solved the puzzle!");
-                    }
-                }
+            if (currentSolution === currentWord) {
+                alert("Correct! Moving to the next level.");
+                score += 10;
+                level = level < 3 ? level + 1 : 1;
+                scoreDisplay.textContent = `Score: ${score}`;
+                levelDisplay.textContent = `Level: ${level}`;
+                setupGame();
             }
-        });
+        }
 
         resetButton.addEventListener("click", () => {
-            initTiles();
-            drawPuzzle();
+            score = 0;
+            level = 1;
+            scoreDisplay.textContent = `Score: ${score}`;
+            levelDisplay.textContent = `Level: ${level}`;
+            setupGame();
         });
 
-        initTiles();
-        drawPuzzle();
+        setupGame();
     </script>
 
     <!-- Placeholder for Google AdSense -->
