@@ -10,36 +10,46 @@
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
-            text-align: center;
             color: #333;
         }
-        h1 {
-            color: #4CAF50;
-            margin-top: 20px;
-        }
-        #main-menu, #difficulty-selection, #gameplay {
-            display: none;
-        }
-        #main-menu.active, #difficulty-selection.active, #gameplay.active {
-            display: block;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 10px;
+        header {
             background-color: #4CAF50;
             color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
+            padding: 20px 0;
+            text-align: center;
         }
-        button:hover {
-            background-color: #45a049;
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+        main {
+            margin: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        aside {
+            width: 20%;
+            padding: 10px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .widget {
+            margin-bottom: 20px;
+        }
+        .widget h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
         }
         #game-container {
             display: inline-block;
-            margin-top: 20px;
             padding: 20px;
+            margin-left: 20px;
             background: white;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -54,71 +64,103 @@
             border: 2px solid #ccc;
             border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background 0.3s, transform 0.2s;
+        }
+        .letter.selected {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #45a049;
         }
         .letter:hover {
-            background-color: #f0f0f0;
+            transform: scale(1.1);
         }
         #clue, #score, #timer {
             margin: 10px 0;
             font-size: 18px;
         }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
-    <h1>Susun Huruf Menjadi Kata</h1>
-
-    <div id="main-menu" class="active">
-        <button id="start-game">Mulai Permainan</button>
-    </div>
-
-    <div id="difficulty-selection">
-        <h2>Pilih Tingkat Kesulitan</h2>
-        <button data-difficulty="easy">Mudah</button>
-        <button data-difficulty="medium">Sedang</button>
-        <button data-difficulty="hard">Sulit</button>
-    </div>
-
-    <div id="gameplay">
-        <div id="clue">Clue: </div>
-        <div id="game-container"></div>
-        <div id="score">Score: 0</div>
-        <div id="timer">Time Left: 30s</div>
-        <button id="submit-answer">Submit</button>
-    </div>
+    <header>
+        <h1>Susun Huruf Menjadi Kata</h1>
+    </header>
+    <main>
+        <aside>
+            <div class="widget">
+                <h3>Pemain</h3>
+                <p id="player-name">Nama: -</p>
+            </div>
+            <div class="widget">
+                <h3>Skor Anda</h3>
+                <p id="player-score">Skor: 0</p>
+            </div>
+        </aside>
+        <section id="game-container" style="display:none;">
+            <div id="clue">Clue: </div>
+            <div id="letters"></div>
+            <div id="score">Score: 0</div>
+            <div id="timer">Time Left: 30s</div>
+            <button id="submit-answer">Submit</button>
+        </section>
+        <div id="name-input" style="display: block;">
+            <h2>Masukkan Nama Anda</h2>
+            <input type="text" id="player-input" placeholder="Nama Anda" />
+            <button id="start-game">Mulai Permainan</button>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2025 Susun Kata. All Rights Reserved.</p>
+    </footer>
 
     <script>
-        const mainMenu = document.getElementById('main-menu');
-        const difficultySelection = document.getElementById('difficulty-selection');
-        const gameplay = document.getElementById('gameplay');
-        const gameContainer = document.getElementById('game-container');
-        const clueDisplay = document.getElementById('clue');
-        const scoreDisplay = document.getElementById('score');
-        const timerDisplay = document.getElementById('timer');
-        const submitButton = document.getElementById('submit-answer');
         let words = [];
         let currentWord = '';
         let shuffledWord = '';
         let currentClue = '';
-        let difficulty = '';
+        let selectedLetters = [];
         let score = 0;
         let timer;
         let timeLeft = 30;
+        let playerName = '';
 
         async function loadWords() {
             const response = await fetch('words.json');
             words = await response.json();
         }
 
-        function startGame() {
-            mainMenu.classList.remove('active');
-            difficultySelection.classList.add('active');
+        function saveScore() {
+            fetch('save_score.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: playerName, score: score })
+            }).then(response => response.text())
+              .then(data => console.log(data))
+              .catch(error => console.error('Error saving score:', error));
         }
 
-        function selectDifficulty(event) {
-            difficulty = event.target.dataset.difficulty;
-            difficultySelection.classList.remove('active');
-            gameplay.classList.add('active');
+        function startGame() {
+            playerName = document.getElementById('player-input').value.trim();
+            if (!playerName) {
+                alert('Nama tidak boleh kosong!');
+                return;
+            }
+
+            document.getElementById('player-name').textContent = `Nama: ${playerName}`;
+            document.getElementById('name-input').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
             setupGame();
         }
 
@@ -127,25 +169,54 @@
         }
 
         function setupGame() {
+            const gameContainer = document.getElementById('letters');
+            const clueDisplay = document.getElementById('clue');
             gameContainer.innerHTML = '';
-            const filteredWords = words.filter(w => w.level === difficulty);
-            const randomWord = filteredWords[Math.floor(Math.random() * filteredWords.length)];
+            const randomWord = words[Math.floor(Math.random() * words.length)];
             currentWord = randomWord.word;
             currentClue = randomWord.clue;
             shuffledWord = shuffleWord(currentWord);
             clueDisplay.textContent = `Clue: ${currentClue}`;
+            selectedLetters = [];
+
             shuffledWord.split('').forEach(letter => {
                 const letterElement = document.createElement('div');
                 letterElement.className = 'letter';
                 letterElement.textContent = letter;
+                letterElement.addEventListener('click', () => selectLetter(letterElement));
                 gameContainer.appendChild(letterElement);
             });
+
             startTimer();
         }
 
+        function selectLetter(letterElement) {
+            if (!letterElement.classList.contains('selected')) {
+                letterElement.classList.add('selected');
+                selectedLetters.push(letterElement.textContent);
+            } else {
+                letterElement.classList.remove('selected');
+                selectedLetters = selectedLetters.filter(l => l !== letterElement.textContent);
+            }
+        }
+
+        function checkAnswer() {
+            const answer = selectedLetters.join('');
+            const scoreDisplay = document.getElementById('player-score');
+            if (answer === currentWord) {
+                alert('Correct!');
+                score += 10;
+            } else {
+                alert('Incorrect!');
+            }
+            scoreDisplay.textContent = `Skor: ${score}`;
+            saveScore();
+            setupGame();
+        }
+
         function startTimer() {
+            const timerDisplay = document.getElementById('timer');
             timeLeft = 30;
-            timerDisplay.textContent = `Time Left: ${timeLeft}s`;
             clearInterval(timer);
             timer = setInterval(() => {
                 timeLeft--;
@@ -153,29 +224,14 @@
                 if (timeLeft <= 0) {
                     clearInterval(timer);
                     alert('Time is up!');
+                    saveScore();
                     setupGame();
                 }
             }, 1000);
         }
 
-        function checkAnswer() {
-            const userAnswer = Array.from(gameContainer.children).map(letter => letter.textContent).join('');
-            if (userAnswer === currentWord) {
-                alert('Correct!');
-                score += 10;
-                setupGame();
-            } else {
-                alert('Incorrect!');
-                setupGame();
-            }
-            scoreDisplay.textContent = `Score: ${score}`;
-        }
-
         document.getElementById('start-game').addEventListener('click', startGame);
-        document.querySelectorAll('[data-difficulty]').forEach(button => {
-            button.addEventListener('click', selectDifficulty);
-        });
-        submitButton.addEventListener('click', checkAnswer);
+        document.getElementById('submit-answer').addEventListener('click', checkAnswer);
 
         loadWords();
     </script>
