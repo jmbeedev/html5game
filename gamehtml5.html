@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple HTML5 Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        canvas {
+            display: block;
+            margin: 20px auto;
+            border: 2px solid #000;
+            background-color: #fff;
+        }
+        #score {
+            font-size: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple HTML5 Game</h1>
+    <p>Catch the moving ball and increase your score!</p>
+    <div id="score">Score: 0</div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+
+        let score = 0;
+        let ball = { x: 200, y: 200, radius: 15, dx: 2, dy: 2 };
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function updateBallPosition() {
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                ball.dx = -ball.dx;
+            }
+
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+                ball.dy = -ball.dy;
+            }
+        }
+
+        function checkCollision(event) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            const distance = Math.sqrt(
+                (mouseX - ball.x) ** 2 + (mouseY - ball.y) ** 2
+            );
+
+            if (distance < ball.radius) {
+                score++;
+                scoreDisplay.textContent = `Score: ${score}`;
+
+                ball.x = Math.random() * (canvas.width - 2 * ball.radius) + ball.radius;
+                ball.y = Math.random() * (canvas.height - 2 * ball.radius) + ball.radius;
+            }
+        }
+
+        canvas.addEventListener('click', checkCollision);
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBall();
+            updateBallPosition();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+
+    <!-- Placeholder for Google AdSense -->
+    <div style="margin-top: 30px;">
+        <p>Advertisement</p>
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXX"
+             data-ad-slot="1234567890"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+</body>
+</html>
