@@ -1,8 +1,10 @@
 [
-    { "word": "CAT", "level": "easy", "clue": "A small domesticated carnivorous mammal." },
-    { "word": "DOG", "level": "easy", "clue": "Man's best friend." },
-    { "word": "BIRD", "level": "medium", "clue": "A warm-blooded egg-laying vertebrate distinguished by feathers." },
-    { "word": "PYTHON", "level": "medium", "clue": "A popular programming language." },
-    { "word": "PROGRAMMING", "level": "hard", "clue": "Writing code to create software." },
-    { "word": "DEVELOPER", "level": "hard", "clue": "A person who builds software." }
+    { "word": "CAT", "clue": "A small domesticated carnivorous mammal." },
+    { "word": "DOG", "clue": "Man's best friend." },
+    { "word": "BIRD", "clue": "A warm-blooded egg-laying vertebrate." },
+    { "word": "PYTHON", "clue": "A popular programming language." },
+    { "word": "PROGRAMMING", "clue": "Writing code to create software." },
+    { "word": "DEVELOPER", "clue": "A person who builds software." },
+    { "word": "ELEPHANT", "clue": "The largest land animal." },
+    { "word": "CROCODILE", "clue": "A large predatory reptile." }
 ]
