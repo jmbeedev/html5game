@@ -1,0 +1,12 @@
+[
+    { "word": "CAT", "level": 1, "clue": "A small domesticated carnivorous mammal." },
+    { "word": "DOG", "level": 1, "clue": "A domesticated carnivorous mammal often called man's best friend." },
+    { "word": "BIRD", "level": 2, "clue": "A warm-blooded egg-laying vertebrate distinguished by feathers." },
+    { "word": "FISH", "level": 2, "clue": "A limbless cold-blooded vertebrate animal with gills." },
+    { "word": "ELEPHANT", "level": 3, "clue": "The largest existing land animal." },
+    { "word": "CROCODILE", "level": 3, "clue": "A large predatory semi-aquatic reptile." },
+    { "word": "PYTHON", "level": 4, "clue": "A large nonvenomous snake found in Asia and Africa." },
+    { "word": "JAVASCRIPT", "level": 4, "clue": "A programming language commonly used in web development." },
+    { "word": "DEVELOPER", "level": 5, "clue": "A person who writes code to create software." },
+    { "word": "PROGRAMMING", "level": 5, "clue": "The process of writing computer software." }
+]
