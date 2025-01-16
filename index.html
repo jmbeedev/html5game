@@ -142,6 +142,8 @@
         let playerName = '';
         let level = 1;
         let remainingWords = 5;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
 
         async function loadWords() {
             const response = await fetch('words.json');
@@ -153,7 +155,7 @@
             const scores = await response.json();
             const leaderboard = document.getElementById('leaderboard');
             leaderboard.innerHTML = scores
-                .map((entry) => `<p>${entry.name}: ${entry.score}</p>`)
+                .map((entry) => `<p>${entry.name}: Skor: ${entry.score}, Benar: ${entry.correct}, Salah: ${entry.wrong}</p>`)
                 .join('');
         }
 
@@ -161,7 +163,12 @@
             fetch('save_score.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: playerName, score: score })
+                body: JSON.stringify({
+                    name: playerName,
+                    score: score,
+                    correct: correctAnswers,
+                    wrong: wrongAnswers
+                })
             }).then(() => loadLeaderboard());
         }
 
@@ -184,7 +191,7 @@
 
         function setupGame() {
             if (remainingWords === 0) {
-                alert(`Selamat ${playerName}, skor Anda untuk level ${level} adalah ${score}`);
+                alert(`Level ${level} selesai!`);
                 level++;
                 remainingWords = level * 5;
                 document.getElementById('level').textContent = `Level: ${level}`;
@@ -230,10 +237,12 @@
             if (answer === currentWord) {
                 alert('Correct!');
                 score += 10;
-                remainingWords--;
+                correctAnswers++;
             } else {
                 alert('Incorrect!');
+                wrongAnswers++;
             }
+            remainingWords--;
             scoreDisplay.textContent = `Skor: ${score}`;
             setupGame();
         }
@@ -247,7 +256,9 @@
                 timerDisplay.textContent = `Time Left: ${timeLeft}s`;
                 if (timeLeft <= 0) {
                     clearInterval(timer);
+                    wrongAnswers++;
                     alert('Time is up!');
+                    remainingWords--;
                     setupGame();
                 }
             }, 1000);
