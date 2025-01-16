@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Puzzle Game</title>
+    <title>Enhanced Word Puzzle Game</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -35,14 +35,14 @@
             border: 2px solid #000;
             background-color: #fff;
             cursor: pointer;
+            transition: transform 0.2s ease;
         }
-        #score {
-            font-size: 18px;
-            margin: 20px 0;
+        .letter:active {
+            transform: scale(1.1);
         }
-        #level {
+        #score, #level, #timer {
             font-size: 18px;
-            margin: 20px 0;
+            margin: 10px 0;
         }
         #reset {
             margin-top: 20px;
@@ -53,9 +53,10 @@
     </style>
 </head>
 <body>
-    <h1>Word Puzzle Game</h1>
+    <h1>Enhanced Word Puzzle Game</h1>
     <div id="level">Level: 1</div>
     <div id="score">Score: 0</div>
+    <div id="timer">Time Left: 30s</div>
     <div id="game-container"></div>
     <button id="reset">Reset</button>
 
@@ -73,10 +74,13 @@
         let shuffledWord = "";
         let level = 1;
         let score = 0;
+        let timer;
+        let timeLeft = 30;
 
         const gameContainer = document.getElementById("game-container");
         const scoreDisplay = document.getElementById("score");
         const levelDisplay = document.getElementById("level");
+        const timerDisplay = document.getElementById("timer");
         const resetButton = document.getElementById("reset");
 
         function shuffleWord(word) {
@@ -84,6 +88,20 @@
                 .split("")
                 .sort(() => Math.random() - 0.5)
                 .join("");
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timeLeft = 30;
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert("Time's up! Try again.");
+                    resetGame();
+                }
+            }, 1000);
         }
 
         function setupGame() {
@@ -104,6 +122,8 @@
                 letterDiv.addEventListener("drop", handleDrop);
                 gameContainer.appendChild(letterDiv);
             });
+
+            startTimer();
         }
 
         let draggedElement;
@@ -143,13 +163,16 @@
             }
         }
 
-        resetButton.addEventListener("click", () => {
+        function resetGame() {
             score = 0;
             level = 1;
             scoreDisplay.textContent = `Score: ${score}`;
             levelDisplay.textContent = `Level: ${level}`;
+            timerDisplay.textContent = `Time Left: 30s`;
             setupGame();
-        });
+        }
+
+        resetButton.addEventListener("click", resetGame);
 
         setupGame();
     </script>
